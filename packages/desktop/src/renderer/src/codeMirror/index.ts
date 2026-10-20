@@ -160,6 +160,8 @@ export const setCursorAtFirstLine = (cm: CodeMirrorInstance): void => {
  * No-op when the lines already touch the top/bottom of the document.
  */
 export const moveSelectedLines = (cm: CodeMirrorInstance, direction: 'up' | 'down'): void => {
+  // Programmatic edits bypass CodeMirror's readOnly option, so check it here.
+  if (cm.getOption('readOnly')) return
   const anchor = cm.getCursor('anchor')
   const head = cm.getCursor('head')
   const from = Math.min(anchor.line, head.line)
