@@ -129,6 +129,16 @@
     "type": "boolean",
     "default": true
   },
+  "headingNumbering": {
+    "description": "Editor--Automatically number headings in the editor, outline and export (display only, the file is unchanged)",
+    "type": "boolean",
+    "default": false
+  },
+  "headingNumberingStartLevel": {
+    "description": "Editor--The heading level that heading numbering starts from",
+    "enum": [1, 2],
+    "default": 1
+  },
   "trimUnnecessaryCodeBlockEmptyLines": {
     "description": "Editor--Trim the beginning and ending empty lines in code block",
     "type": "boolean",

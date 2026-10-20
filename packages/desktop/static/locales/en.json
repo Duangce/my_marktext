@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "Auto-normalize line endings to LF on open",
         "wrapCodeBlocks": "Wrap code blocks",
         "sourceCodeLineNumbers": "Show line numbers in source code mode"
+      },
+      "headingNumbering": {
+        "title": "Heading Numbering",
+        "enable": "Automatically number headings (1. / 1.1 / 1.1.1)",
+        "enableNotes": "Shown in the editor, the outline and HTML/PDF export. The markdown file itself is not changed.",
+        "startLevel": {
+          "title": "Start numbering at",
+          "h1": "Heading 1",
+          "h2": "Heading 2 (Heading 1 is the document title)"
+        }
       }
     },
     "image": {

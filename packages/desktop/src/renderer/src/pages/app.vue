@@ -43,6 +43,7 @@ import { computed, watch, nextTick, onMounted, ref } from 'vue'
 import { useMainStore } from '@/store'
 import { storeToRefs } from 'pinia'
 import { addStyles, addThemeStyle, addCustomStyle, type AddStylesOptions } from '@/util/theme'
+import { applyEditorHeadingNumbering, normalizeStartLevel } from '@/util/headingNumbering'
 import Recent from '@/components/recent/index.vue'
 import EditorWithTabs from '@/components/editorWithTabs/index.vue'
 import TitleBar from '@/components/titleBar/index.vue'
@@ -77,7 +78,15 @@ const timer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 const { windowActive, platform, init } = storeToRefs(mainStore)
 const { showTabBar } = storeToRefs(layoutStore)
-const { sourceCode, theme, customCss, textDirection, zoom } = storeToRefs(preferencesStore)
+const {
+  sourceCode,
+  theme,
+  customCss,
+  textDirection,
+  zoom,
+  headingNumbering,
+  headingNumberingStartLevel
+} = storeToRefs(preferencesStore)
 const { projectTree } = storeToRefs(projectStore)
 const { currentFile, selectionWordCount } = storeToRefs(editorStore)
 
@@ -127,6 +136,14 @@ watch(customCss, (value, oldValue) => {
     })
   }
 })
+
+watch(
+  [headingNumbering, headingNumberingStartLevel],
+  ([enabled, startLevel]) => {
+    applyEditorHeadingNumbering(!!enabled, normalizeStartLevel(startLevel))
+  },
+  { immediate: true }
+)
 
 watch(zoom, (zoomValue) => {
   bus.emit('mt::window-zoom', zoomValue)

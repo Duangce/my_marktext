@@ -112,6 +112,7 @@ import {
 } from '@muyajs/core'
 import { getMuyaLocale } from '@/util/muyaLocale'
 import { exportStyledHTML, type HeaderFooterPart } from '@/util/exportHtml'
+import { getExportHeadingNumberingCss, normalizeStartLevel } from '@/util/headingNumbering'
 import { applyCursor, isIndexCursor } from '@/util/cursor'
 import EditorSearch from '../search/index.vue'
 import MediaViewer from '../mediaViewer/index.vue'
@@ -243,6 +244,8 @@ const {
   spellcheckerNoUnderline,
   spellcheckerLanguage,
   language,
+  headingNumbering,
+  headingNumberingStartLevel,
 
   // Edit modes
   typewriter: typewriterPreference,
@@ -1357,7 +1360,16 @@ const handleExport = async (options: unknown) => {
   if (!muya) return
 
   editorStore.flushActiveEditor()
-  const extraCss = await getCssForOptions(opts as unknown as PdfCssOptions)
+  // With heading numbering on, the export numbers headings exactly like the
+  // editor; the export dialog's own "Auto numbering headings" (always from H2)
+  // is skipped so the numbers are not drawn twice.
+  let extraCss = await getCssForOptions({
+    ...opts,
+    ...(headingNumbering.value ? { autoNumberingHeadings: false } : {})
+  } as unknown as PdfCssOptions)
+  if (headingNumbering.value) {
+    extraCss += getExportHeadingNumberingCss(normalizeStartLevel(headingNumberingStartLevel.value))
+  }
   const htmlToc = getHtmlToc(muya.getTOC(), opts as unknown as HtmlTocOptions)
   // The hidden WYSIWYG engine keeps its pre-source-mode document until the handoff.
   const markdown = sourceCode.value ? (editorStore.currentFile?.markdown ?? '') : muya.getMarkdown()

@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "Zeilenenden beim Öffnen automatisch auf LF normalisieren",
         "wrapCodeBlocks": "Code-Blöcke umbrechen",
         "sourceCodeLineNumbers": "Zeilennummern im Quellcode-Modus anzeigen"
+      },
+      "headingNumbering": {
+        "title": "Überschriftennummerierung",
+        "enable": "Überschriften automatisch nummerieren (1. / 1.1 / 1.1.1)",
+        "enableNotes": "Wird im Editor, in der Gliederung und beim HTML/PDF-Export angezeigt. Die Markdown-Datei selbst bleibt unverändert.",
+        "startLevel": {
+          "title": "Nummerierung beginnt bei",
+          "h1": "Überschrift 1",
+          "h2": "Überschrift 2 (Überschrift 1 ist der Dokumenttitel)"
+        }
       }
     },
     "image": {

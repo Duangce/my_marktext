@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "開啟時自動將行尾標準化為 LF",
         "wrapCodeBlocks": "換行程式碼區塊",
         "sourceCodeLineNumbers": "在原始碼模式中顯示行號"
+      },
+      "headingNumbering": {
+        "title": "標題編號",
+        "enable": "自動為標題編號（1. / 1.1 / 1.1.1）",
+        "enableNotes": "在編輯區、大綱和 HTML/PDF 匯出中顯示，不會修改 Markdown 檔案本身。",
+        "startLevel": {
+          "title": "編號起始層級",
+          "h1": "一級標題（H1）",
+          "h2": "二級標題（H2，H1 作為文件標題）"
+        }
       }
     },
     "image": {

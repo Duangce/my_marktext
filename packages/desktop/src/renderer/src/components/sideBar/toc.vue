@@ -46,6 +46,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useEditorStore } from '@/store/editor'
 import { usePreferencesStore } from '@/store/preferences'
 import { deriveKeyedToc, type KeyedTocNode } from '@/util/tocKeys'
+import { normalizeStartLevel, numberHeadings } from '@/util/headingNumbering'
 import { sanitize, TOC_DOMPURIFY_CONFIG } from '@/util/dompurify'
 import bus from '../../bus'
 import { storeToRefs } from 'pinia'
@@ -88,6 +89,7 @@ const defaultProps = {
 interface TocNodeData {
   label?: unknown
   labelHtml?: unknown
+  slug?: unknown
 }
 
 const plainLabel = (data: TocNodeData): string =>
@@ -96,13 +98,31 @@ const plainLabel = (data: TocNodeData): string =>
 const escapeHtml = (text: string): string =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
+const { toc, listToc } = storeToRefs(editorStore)
+const { wordWrapInToc, headingNumbering, headingNumberingStartLevel } = storeToRefs(preferencesStore)
+
+// Heading numbers ("1.2") by engine slug, mirroring the editor's CSS counters.
+// The flat list keeps the real heading levels; the tree only keeps nesting.
+const headingNumbers = computed<Map<string, string>>(() => {
+  const numbers = new Map<string, string>()
+  if (!headingNumbering.value) return numbers
+  const items = listToc.value ?? []
+  const labels = numberHeadings(
+    items.map((item) => item.lvl),
+    normalizeStartLevel(headingNumberingStartLevel.value)
+  )
+  items.forEach((item, i) => {
+    if (typeof item.slug === 'string' && labels[i]) numbers.set(item.slug, labels[i]!)
+  })
+  return numbers
+})
+
 const labelHtmlOf = (data: TocNodeData): string => {
   const html = typeof data.labelHtml === 'string' ? data.labelHtml : ''
-  return html ? sanitize(html, TOC_DOMPURIFY_CONFIG) : escapeHtml(plainLabel(data))
+  const label = html ? sanitize(html, TOC_DOMPURIFY_CONFIG) : escapeHtml(plainLabel(data))
+  const number = typeof data.slug === 'string' ? headingNumbers.value.get(data.slug) : undefined
+  return number ? `<span class="toc-heading-number">${escapeHtml(number)}</span>${label}` : label
 }
-
-const { toc } = storeToRefs(editorStore)
-const { wordWrapInToc } = storeToRefs(preferencesStore)
 
 // Stable per-node key so el-tree preserves the user's expand/collapse state
 // across content edits (#3028) and tab switches (#3791). See deriveKeyedToc.
@@ -289,6 +309,11 @@ const handleClick = (data: { slug?: unknown }): void => {
   white-space: normal;
   text-overflow: clip;
   overflow: visible;
+}
+
+.side-bar-toc .el-tree-node__label .toc-heading-number {
+  margin-right: 0.4em;
+  opacity: 0.7;
 }
 
 .side-bar-toc .el-tree-node__label strong {

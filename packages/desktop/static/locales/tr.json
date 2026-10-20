@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "Açılışta satır sonlarını LF'ye otomatik normalleştir",
         "wrapCodeBlocks": "Kod bloklarını kaydır",
         "sourceCodeLineNumbers": "Kaynak kod modunda satır numaralarını göster"
+      },
+      "headingNumbering": {
+        "title": "Başlık numaralandırma",
+        "enable": "Başlıkları otomatik numaralandır (1. / 1.1 / 1.1.1)",
+        "enableNotes": "Düzenleyicide, ana hatta ve HTML/PDF dışa aktarımında gösterilir. Markdown dosyasının kendisi değiştirilmez.",
+        "startLevel": {
+          "title": "Numaralandırmaya şuradan başla",
+          "h1": "Başlık 1",
+          "h2": "Başlık 2 (Başlık 1 belge başlığıdır)"
+        }
       }
     },
     "image": {

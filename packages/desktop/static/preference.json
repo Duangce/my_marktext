@@ -24,6 +24,8 @@
   "codeFontFamily": "DejaVu Sans Mono",
   "codeBlockLineNumbers": false,
   "sourceCodeLineNumbers": true,
+  "headingNumbering": false,
+  "headingNumberingStartLevel": 1,
   "trimUnnecessaryCodeBlockEmptyLines": true,
   "wrapCodeBlocks": false,
   "editorLineWidth": "",

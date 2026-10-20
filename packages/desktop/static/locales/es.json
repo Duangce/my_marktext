@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "Normalizar automáticamente los finales de línea a LF al abrir",
         "wrapCodeBlocks": "Ajustar bloques de código",
         "sourceCodeLineNumbers": "Mostrar números de línea en el modo código fuente"
+      },
+      "headingNumbering": {
+        "title": "Numeración de encabezados",
+        "enable": "Numerar los encabezados automáticamente (1. / 1.1 / 1.1.1)",
+        "enableNotes": "Se muestra en el editor, el esquema y la exportación HTML/PDF. El archivo markdown no se modifica.",
+        "startLevel": {
+          "title": "Empezar a numerar en",
+          "h1": "Encabezado 1",
+          "h2": "Encabezado 2 (el encabezado 1 es el título)"
+        }
       }
     },
     "image": {

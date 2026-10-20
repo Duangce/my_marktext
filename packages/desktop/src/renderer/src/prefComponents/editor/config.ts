@@ -79,3 +79,14 @@ export const getDefaultEncodingOptions = (): PrefSelectOption<string>[] => {
   defaultEncodingOptions = options
   return defaultEncodingOptions
 }
+
+export const getHeadingNumberingStartLevelOptions = (): PrefSelectOption<number>[] => [
+  {
+    label: t('preferences.editor.headingNumbering.startLevel.h1'),
+    value: 1
+  },
+  {
+    label: t('preferences.editor.headingNumbering.startLevel.h2'),
+    value: 2
+  }
+]

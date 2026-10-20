@@ -155,6 +155,29 @@
     <compound>
       <template #head>
         <h6 class="title">
+          {{ t('preferences.editor.headingNumbering.title') }}
+        </h6>
+      </template>
+      <template #children>
+        <bool
+          :description="t('preferences.editor.headingNumbering.enable')"
+          :notes="t('preferences.editor.headingNumbering.enableNotes')"
+          :bool="headingNumbering"
+          :on-change="(value) => onSelectChange('headingNumbering', value)"
+        />
+        <cur-select
+          :description="t('preferences.editor.headingNumbering.startLevel.title')"
+          :value="headingNumberingStartLevel"
+          :options="getHeadingNumberingStartLevelOptions()"
+          :disable="!headingNumbering"
+          :on-change="(value) => onSelectChange('headingNumberingStartLevel', value)"
+        />
+      </template>
+    </compound>
+
+    <compound>
+      <template #head>
+        <h6 class="title">
           {{ t('preferences.editor.misc.title') }}
         </h6>
       </template>
@@ -206,7 +229,8 @@ import {
   getEndOfLineOptions,
   getTextDirectionOptions,
   getTrimTrailingNewlineOptions,
-  getDefaultEncodingOptions
+  getDefaultEncodingOptions,
+  getHeadingNumberingStartLevelOptions
 } from './config'
 
 const { t } = useI18n()
@@ -232,6 +256,8 @@ const {
   hideLinkPopup,
   autoCheck,
   sourceCodeLineNumbers,
+  headingNumbering,
+  headingNumberingStartLevel,
   autoNormalizeLineEndings,
   wrapCodeBlocks,
   editorLineWidth,

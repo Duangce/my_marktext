@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "Regeleindes automatisch normaliseren naar LF bij openen",
         "wrapCodeBlocks": "Codeblokken terugloopbaar",
         "sourceCodeLineNumbers": "Regelnummers tonen in broncodeweergave"
+      },
+      "headingNumbering": {
+        "title": "Kopnummering",
+        "enable": "Koppen automatisch nummeren (1. / 1.1 / 1.1.1)",
+        "enableNotes": "Zichtbaar in de editor, de inhoudsopgave en de HTML/PDF-export. Het markdown-bestand zelf wordt niet gewijzigd.",
+        "startLevel": {
+          "title": "Nummering begint bij",
+          "h1": "Kop 1",
+          "h2": "Kop 2 (kop 1 is de documenttitel)"
+        }
       }
     },
     "image": {

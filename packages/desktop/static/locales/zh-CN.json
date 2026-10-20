@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "打开时自动将行尾规范化为 LF",
         "wrapCodeBlocks": "换行代码块",
         "sourceCodeLineNumbers": "在源码模式中显示行号"
+      },
+      "headingNumbering": {
+        "title": "标题编号",
+        "enable": "自动为标题编号（1. / 1.1 / 1.1.1）",
+        "enableNotes": "在编辑区、大纲和 HTML/PDF 导出中显示，不会修改 Markdown 文件本身。",
+        "startLevel": {
+          "title": "编号起始级别",
+          "h1": "一级标题（H1）",
+          "h2": "二级标题（H2，H1 作为文档标题）"
+        }
       }
     },
     "image": {

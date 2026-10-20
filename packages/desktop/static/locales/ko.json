@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "열 때 줄 바꿈을 자동으로 LF로 정규화",
         "wrapCodeBlocks": "코드 블록 줄바꿈",
         "sourceCodeLineNumbers": "소스 코드 모드에서 줄 번호 표시"
+      },
+      "headingNumbering": {
+        "title": "제목 번호",
+        "enable": "제목에 자동으로 번호 매기기 (1. / 1.1 / 1.1.1)",
+        "enableNotes": "편집기, 개요, HTML/PDF 내보내기에 표시됩니다. Markdown 파일 자체는 변경되지 않습니다.",
+        "startLevel": {
+          "title": "번호 시작 수준",
+          "h1": "제목 1",
+          "h2": "제목 2 (제목 1은 문서 제목)"
+        }
       }
     },
     "image": {

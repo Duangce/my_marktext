@@ -49,6 +49,8 @@ export interface PreferencesState {
   codeFontFamily: string
   codeBlockLineNumbers: boolean
   sourceCodeLineNumbers: boolean
+  headingNumbering: boolean
+  headingNumberingStartLevel: 1 | 2
   trimUnnecessaryCodeBlockEmptyLines: boolean
   wrapCodeBlocks: boolean
   editorLineWidth: string
@@ -179,6 +181,8 @@ export const usePreferencesStore = defineStore('preferences', {
     codeFontFamily: 'DejaVu Sans Mono',
     codeBlockLineNumbers: false,
     sourceCodeLineNumbers: true,
+    headingNumbering: false,
+    headingNumberingStartLevel: 1,
     trimUnnecessaryCodeBlockEmptyLines: true,
     wrapCodeBlocks: false,
     editorLineWidth: '',

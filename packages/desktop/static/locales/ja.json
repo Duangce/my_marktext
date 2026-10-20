@@ -611,6 +611,16 @@
         "autoNormalizeLineEndings": "開くときに改行コードを自動的に LF へ統一",
         "wrapCodeBlocks": "コードブロックを折り返し",
         "sourceCodeLineNumbers": "ソースコードモードで行番号を表示"
+      },
+      "headingNumbering": {
+        "title": "見出し番号",
+        "enable": "見出しに自動で番号を付ける（1. / 1.1 / 1.1.1）",
+        "enableNotes": "エディター、アウトライン、HTML/PDF エクスポートに表示されます。Markdown ファイル自体は変更されません。",
+        "startLevel": {
+          "title": "番号を付け始める見出し",
+          "h1": "見出し 1",
+          "h2": "見出し 2（見出し 1 は文書タイトル）"
+        }
       }
     },
     "image": {
