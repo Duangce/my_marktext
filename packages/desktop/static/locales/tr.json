@@ -16,6 +16,7 @@
       "newWindow": "Yeni Pencere",
       "openFile": "Dosya Aç...",
       "openFolder": "Klasör Aç...",
+      "addFolder": "Kenar çubuğuna klasör ekle...",
       "openRecent": "Son Kullanılanları Aç",
       "clearRecentlyUsed": "Son Kullanılanları Temizle",
       "save": "Kaydet",
@@ -210,7 +211,9 @@
       "rename": "Yeniden Adlandır",
       "moveToTrash": "Çöp Kutusuna Taşı",
       "copyPath": "Yolu Kopyala",
-      "showInFolder": "Klasörde Göster"
+      "showInFolder": "Klasörde Göster",
+      "addFolder": "Kenar çubuğuna klasör ekle...",
+      "removeFolder": "Klasörü kenar çubuğundan kaldır"
     },
     "tabs": {
       "close": "Kapat",
@@ -252,7 +255,10 @@
       "closeAll": "Tümünü Kapat",
       "emptyProject": "Boş proje",
       "createFile": "Dosya Oluştur",
-      "openFolder": "Klasör Aç"
+      "openFolder": "Klasör Aç",
+      "addFolder": "Kenar çubuğuna klasör ekle",
+      "folders": "{count} klasör",
+      "recentFolders": "Son klasörler"
     },
     "toc": {
       "expand": "İçindekileri genişlet",
@@ -815,6 +821,7 @@
       "newTab": "Yeni Sekme",
       "openFile": "Dosya Aç",
       "openFolder": "Klasör Aç",
+      "addFolder": "Kenar çubuğuna klasör ekle",
       "save": "Kaydet",
       "saveAs": "Farklı Kaydet",
       "moveFile": "Dosyayı Taşı",

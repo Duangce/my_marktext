@@ -903,9 +903,12 @@ const imageAction = async (
     ? window.path.dirname(currentPathname)
     : null
   if (isTabSavedOnDisk && imageRelativeDirectoryBase.value !== 'file' && projectTree.value) {
-    const { pathname: rootPath } = projectTree.value as { pathname?: string }
-    if (rootPath && window.fileUtils.isChildOfDirectory(rootPath, currentPathname)) {
-      // Save assets relative to root directory.
+    // Save assets relative to the side bar folder that holds the file.
+    const rootPath = projectStore.projectTrees
+      .map((tree) => tree.pathname)
+      .filter((root) => root && window.fileUtils.isChildOfDirectory(root, currentPathname))
+      .sort((a, b) => b.length - a.length)[0]
+    if (rootPath) {
       relativeBasePath = rootPath
     }
   }

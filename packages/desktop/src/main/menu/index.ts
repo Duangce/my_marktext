@@ -508,6 +508,10 @@ class AppMenu {
   }
 
   _listenForIpcMain(): void {
+    // The side bar offers the recently used folders when no folder is open.
+    ipcMain.handle('mt::get-recent-folders', () =>
+      this.getRecentlyUsedDocuments().filter((pathname) => isDirectory2(pathname))
+    )
     ipcMain.on('mt::add-recently-used-document', (_e, pathname: string) => {
       this.addRecentlyUsedDocument(pathname)
     })

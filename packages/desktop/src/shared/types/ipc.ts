@@ -58,6 +58,7 @@ export interface IpcInvokeChannels {
   'mt::link::fetch-html': { args: [url: string]; ret: string }
   'mt::clipboard::write-image': { args: [png: Uint8Array]; ret: boolean }
   'mt::cmd::exists': { args: [name: string]; ret: boolean }
+  'mt::get-recent-folders': { args: []; ret: string[] }
   'mt::diagram::fetch-plantuml': {
     args: [server: string, encoded: string, format: 'svg' | 'png']
     ret: PlantumlFetchResult
@@ -129,9 +130,12 @@ export interface IpcSendChannels {
   'mt::app-try-quit': []
   'mt::ask-for-image-auto-path': [payload: unknown]
   'mt::ask-for-modify-image-folder-path': [imagePath?: string]
+  'mt::ask-for-add-folder-in-sidebar': []
   'mt::ask-for-open-project-in-sidebar': []
   'mt::ask-for-user-data': []
   'mt::ask-for-user-preference': []
+  'mt::open-recent-folder': [directoryPath: string]
+  'mt::remove-project-folder': [directoryPath: string]
   'mt::check-for-update': []
   'mt::close-window': []
   'mt::close-window-confirm': [unsavedFiles: UnsavedFile[]]
@@ -278,6 +282,7 @@ export interface IpcMainEventChannels {
   'mt::menu::closed': []
   'mt::new-untitled-tab': [selected?: boolean, markdown?: string]
   'mt::open-directory': [directoryPath: string]
+  'mt::add-directory': [directoryPath: string]
   'mt::open-new-tab': [
     markdownDocument: MarkdownDocument | null,
     options?: TabOptions,

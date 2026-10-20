@@ -8,7 +8,9 @@ import {
   getRENAME,
   getDELETE,
   getCopyPath,
-  getShowInFolder
+  getShowInFolder,
+  getAddFolder,
+  getRemoveFolder
 } from './menuItems'
 import { popupContextMenu, type ContextMenuItem } from '../popupMenu'
 
@@ -34,7 +36,11 @@ export const showContextMenu = (
   // PASTE entry (index 5) toggles based on the cached source path.
   contextItems[5].enabled = hasPathCache
 
-  const items: ContextMenuItem[] = contextItems.map((item) => {
+  popupContextMenu(bindClicks(contextItems), { x: event.clientX, y: event.clientY })
+}
+
+const bindClicks = (contextItems: ContextMenuItem[]): ContextMenuItem[] =>
+  contextItems.map((item) => {
     if (!item || item.type === 'separator') return item
     const click = item.click
     return {
@@ -43,5 +49,29 @@ export const showContextMenu = (
     }
   })
 
-  popupContextMenu(items, { x: event.clientX, y: event.clientY })
+/**
+ * Menu of an opened folder's header row (`forFolder`), or of the shared
+ * header shown when several folders are open, which only adds folders.
+ */
+export const showRootContextMenu = (
+  event: { clientX: number; clientY: number },
+  { hasPathCache, forFolder }: { hasPathCache: boolean; forFolder: boolean }
+): void => {
+  const paste: ContextMenuItem = { ...getPASTE(), enabled: hasPathCache }
+  const contextItems: ContextMenuItem[] = forFolder
+    ? [
+        getNewFile(),
+        getNewDirectory(),
+        SEPARATOR,
+        paste,
+        SEPARATOR,
+        getAddFolder(),
+        getRemoveFolder(),
+        SEPARATOR,
+        getCopyPath(),
+        getShowInFolder()
+      ]
+    : [getAddFolder()]
+
+  popupContextMenu(bindClicks(contextItems), { x: event.clientX, y: event.clientY })
 }

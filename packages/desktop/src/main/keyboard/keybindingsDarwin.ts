@@ -14,6 +14,7 @@ const keybindings: Map<string, string> = new Map([
   ['file.new-tab', 'Command+T'],
   ['file.open-file', 'Command+O'],
   ['file.open-folder', 'Command+Shift+O'],
+  ['file.add-folder', ''],
   ['file.save', 'Command+S'],
   ['file.save-as', 'Command+Shift+S'],
   ['file.move-file', ''],

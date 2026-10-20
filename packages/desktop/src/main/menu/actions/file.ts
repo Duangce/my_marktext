@@ -665,6 +665,29 @@ ipcMain.on(
   }
 )
 
+ipcMain.on('mt::ask-for-add-folder-in-sidebar', (e) => {
+  const win = BrowserWindow.fromWebContents(e.sender)
+  addFolder(win)
+})
+
+ipcMain.on('mt::remove-project-folder', (e, pathname: string) => {
+  const win = BrowserWindow.fromWebContents(e.sender)
+  if (win && typeof pathname === 'string' && pathname) {
+    ipcMain.emit('app-remove-directory-by-id', win.id, pathname)
+  }
+})
+
+ipcMain.on('mt::open-recent-folder', (e, pathname: string) => {
+  const win = BrowserWindow.fromWebContents(e.sender)
+  if (!win || typeof pathname !== 'string' || !pathname) {
+    return
+  }
+  const resolvedPath = normalizeAndResolvePath(pathname)
+  if (isDirectory(resolvedPath)) {
+    ipcMain.emit('app-open-directory-by-id', win.id, resolvedPath, true)
+  }
+})
+
 ipcMain.on('mt::ask-for-open-project-in-sidebar', async(e) => {
   const win = BrowserWindow.fromWebContents(e.sender)
   if (!win) {
@@ -858,6 +881,25 @@ export const openFolder = async(win: BrowserWindow | null): Promise<void> => {
   }
 }
 
+/**
+ * Ask for a folder and add it to the side bar next to the opened folders.
+ */
+export const addFolder = async(win: BrowserWindow | null): Promise<void> => {
+  if (!win) {
+    return
+  }
+  const { filePaths } = await dialog.showOpenDialog(win, {
+    properties: ['openDirectory', 'createDirectory']
+  })
+
+  if (filePaths && filePaths[0]) {
+    const resolvedPath = normalizeAndResolvePath(filePaths[0])
+    if (isDirectory(resolvedPath)) {
+      ipcMain.emit('app-add-directory-by-id', win.id, resolvedPath)
+    }
+  }
+}
+
 export const openFileOrFolder = (
   win: BrowserWindow,
   pathname: string,
@@ -948,6 +990,7 @@ export const loadFileCommands = (commandManager: CommandManager): void => {
   commandManager.add(COMMANDS.FILE_NEW_TAB, newBlankTab)
   commandManager.add(COMMANDS.FILE_OPEN_FILE, openFile)
   commandManager.add(COMMANDS.FILE_OPEN_FOLDER, openFolder)
+  commandManager.add(COMMANDS.FILE_ADD_FOLDER, addFolder)
   commandManager.add(COMMANDS.FILE_PREFERENCES, userSetting)
   commandManager.add(COMMANDS.FILE_PRINT, printDocument)
   commandManager.add(COMMANDS.FILE_QUIT, app.quit)

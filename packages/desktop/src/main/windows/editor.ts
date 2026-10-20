@@ -4,6 +4,7 @@ import type { BrowserWindowConstructorOptions } from 'electron'
 import log from 'electron-log'
 import windowStateKeeper from 'electron-window-state'
 import { isChildOfDirectory, isSamePathSync } from 'common/filesystem/paths'
+import { isDirectory } from 'common/filesystem'
 import BaseWindow, { WindowLifecycle, WindowType } from './base'
 import type Accessor from '../app/accessor'
 import { ensureWindowPosition, zoomIn, zoomOut } from './utils'
@@ -43,7 +44,7 @@ interface RestoredTab {
 interface RestoredBufferState {
   tabs: RestoredTab[]
   restoreWarnings?: unknown[]
-  project?: { rootDirectory?: string }
+  project?: { rootDirectory?: string; extraDirectories?: string[] }
   [key: string]: unknown
 }
 
@@ -56,6 +57,9 @@ class EditorWindow extends BaseWindow {
   // used to find the best window to open new files in.
   private _openedRootDirectory: string | null
   private _openedFiles: string[] | null
+  // Further folders shown below the root folder in the side bar.
+  private _extraRootDirectories: string[] | null
+  private _extraDirectoriesToOpen: string[]
 
   public bufferStoreInfo: BufferStoreInfo | null
 
@@ -75,6 +79,8 @@ class EditorWindow extends BaseWindow {
     // used to find the best window to open new files in.
     this._openedRootDirectory = ''
     this._openedFiles = []
+    this._extraRootDirectories = []
+    this._extraDirectoriesToOpen = []
 
     this.bufferStoreInfo = null
   }
@@ -399,6 +405,11 @@ class EditorWindow extends BaseWindow {
       if (this._openedRootDirectory) {
         ipcMain.emit('watcher-unwatch-directory', browserWindow, this._openedRootDirectory)
       }
+      // Opening a folder replaces the whole side bar, extra folders included.
+      for (const extra of this._extraRootDirectories ?? []) {
+        ipcMain.emit('watcher-unwatch-directory', browserWindow, extra)
+      }
+      this._extraRootDirectories = []
 
       preferences.setItems({ lastOpenedFolder: pathname })
       appMenu.addRecentlyUsedDocument(pathname)
@@ -407,7 +418,62 @@ class EditorWindow extends BaseWindow {
       browserWindow!.webContents.send('mt::open-directory', pathname)
     } else {
       this._directoryToOpen = pathname
+      this._extraDirectoriesToOpen = []
     }
+  }
+
+  /**
+   * Add a folder to the side bar next to the already opened ones. Opens it as
+   * the root folder when no folder is open yet.
+   */
+  addFolder(pathname: string): void {
+    if (!pathname || this.lifecycle === WindowLifecycle.QUITTED) {
+      return
+    }
+    if (this.lifecycle !== WindowLifecycle.READY) {
+      if (!this._directoryToOpen) {
+        this._directoryToOpen = pathname
+      } else if (!this._extraDirectoriesToOpen.some((p) => isSamePathSync(p, pathname))) {
+        this._extraDirectoriesToOpen.push(pathname)
+      }
+      return
+    }
+    if (!this._openedRootDirectory) {
+      this.openFolder(pathname)
+      return
+    }
+    const opened = [this._openedRootDirectory, ...(this._extraRootDirectories ?? [])]
+    if (opened.some((p) => isSamePathSync(p, pathname))) {
+      return
+    }
+
+    const { browserWindow } = this
+    const { menu: appMenu } = this._accessor
+    appMenu.addRecentlyUsedDocument(pathname)
+    this._extraRootDirectories!.push(pathname)
+    ipcMain.emit('watcher-watch-directory', browserWindow, pathname)
+    browserWindow!.webContents.send('mt::add-directory', pathname)
+  }
+
+  /**
+   * Remove a folder from the side bar. Removing the root folder promotes the
+   * first extra folder to the root. The renderer updates its own tree.
+   */
+  removeFolder(pathname: string): void {
+    if (!pathname || this.lifecycle !== WindowLifecycle.READY) {
+      return
+    }
+    const { browserWindow } = this
+    const extras = this._extraRootDirectories ?? []
+    const index = extras.findIndex((p) => isSamePathSync(p, pathname))
+    if (index !== -1) {
+      extras.splice(index, 1)
+    } else if (this._openedRootDirectory && isSamePathSync(this._openedRootDirectory, pathname)) {
+      this._openedRootDirectory = extras.shift() ?? ''
+    } else {
+      return
+    }
+    ipcMain.emit('watcher-unwatch-directory', browserWindow, pathname)
   }
 
   /**
@@ -451,14 +517,15 @@ class EditorWindow extends BaseWindow {
    * Returns a score list for a given file list.
    */
   getCandidateScores(fileList: string[]): CandidateScore[] {
-    const { _openedFiles, _openedRootDirectory, id } = this
+    const { _openedFiles, _openedRootDirectory, _extraRootDirectories, id } = this
+    const roots = [_openedRootDirectory ?? '', ...(_extraRootDirectories ?? [])]
     const buf: CandidateScore[] = []
     for (const pathname of fileList) {
       let score = 0
       if (_openedFiles!.some((p) => p === pathname)) {
         score = -1
       } else {
-        if (isChildOfDirectory(_openedRootDirectory ?? '', pathname)) {
+        if (roots.some((root) => isChildOfDirectory(root, pathname))) {
           score += 5
         }
         for (const item of _openedFiles!) {
@@ -484,6 +551,8 @@ class EditorWindow extends BaseWindow {
     this._markdownToOpen = []
     this._openedRootDirectory = ''
     this._openedFiles = []
+    this._extraRootDirectories = []
+    this._extraDirectoriesToOpen = []
 
     browserWindow!.webContents.once('did-finish-load', () => {
       this.lifecycle = WindowLifecycle.READY
@@ -516,10 +585,16 @@ class EditorWindow extends BaseWindow {
     this._markdownToOpen = null
     this._openedRootDirectory = null
     this._openedFiles = null
+    this._extraRootDirectories = null
+    this._extraDirectoriesToOpen = []
   }
 
   get openedRootDirectory(): string | null {
     return this._openedRootDirectory
+  }
+
+  get extraRootDirectories(): string[] {
+    return this._extraRootDirectories ?? []
   }
 
   // --- private ---------------------------------
@@ -560,10 +635,15 @@ class EditorWindow extends BaseWindow {
       throw new Error('Invalid state.')
     }
 
+    const extraDirectories = this._extraDirectoriesToOpen
+    this._extraDirectoriesToOpen = []
     if (this._directoryToOpen) {
       this.openFolder(this._directoryToOpen)
     }
     this._directoryToOpen = null
+    for (const extra of extraDirectories) {
+      this.addFolder(extra)
+    }
 
     for (const { doc, options, selected } of this._filesToOpen!) {
       this._doOpenTab(doc, options, selected)
@@ -591,6 +671,10 @@ class EditorWindow extends BaseWindow {
       const rootDirectory = bufferState.project?.rootDirectory
       if (rootDirectory) {
         this.openFolder(rootDirectory)
+        const extraDirectories = bufferState.project?.extraDirectories
+        for (const extra of Array.isArray(extraDirectories) ? extraDirectories : []) {
+          if (typeof extra === 'string' && isDirectory(extra)) this.addFolder(extra)
+        }
       }
 
       // We still need to load the files of all opened tabs and check for errors/changed files

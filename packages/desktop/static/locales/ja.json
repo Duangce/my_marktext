@@ -16,6 +16,7 @@
       "newWindow": "新しいウィンドウ",
       "openFile": "ファイルを開く...",
       "openFolder": "フォルダーを開く...",
+      "addFolder": "サイドバーにフォルダーを追加...",
       "openRecent": "最近使ったファイル",
       "clearRecentlyUsed": "最近使ったファイルをクリア",
       "save": "保存",
@@ -210,7 +211,9 @@
       "rename": "名前の変更",
       "moveToTrash": "ごみ箱に移動",
       "copyPath": "パスのコピー",
-      "showInFolder": "フォルダーの表示"
+      "showInFolder": "フォルダーの表示",
+      "addFolder": "サイドバーにフォルダーを追加...",
+      "removeFolder": "サイドバーからフォルダーを削除"
     },
     "tabs": {
       "close": "閉じる",
@@ -252,7 +255,10 @@
       "closeAll": "すべて閉じる",
       "emptyProject": "空のプロジェクト",
       "createFile": "ファイルの作成",
-      "openFolder": "フォルダーを開く"
+      "openFolder": "フォルダーを開く",
+      "addFolder": "サイドバーにフォルダーを追加",
+      "folders": "{count} 個のフォルダー",
+      "recentFolders": "最近使ったフォルダー"
     },
     "toc": {
       "expand": "目次を展開",
@@ -815,6 +821,7 @@
       "newTab": "新しいタブ",
       "openFile": "ファイルを開く",
       "openFolder": "フォルダーを開く",
+      "addFolder": "サイドバーにフォルダーを追加",
       "save": "保存",
       "saveAs": "名前を付けて保存",
       "moveFile": "ファイルを移動",

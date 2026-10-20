@@ -16,6 +16,7 @@
       "newWindow": "Nova Janela",
       "openFile": "Abrir Arquivo...",
       "openFolder": "Abrir Pasta...",
+      "addFolder": "Adicionar pasta à barra lateral...",
       "openRecent": "Abrir Recente",
       "clearRecentlyUsed": "Limpar Recentes",
       "save": "Salvar",
@@ -210,7 +211,9 @@
       "rename": "Renomear",
       "moveToTrash": "Mover para Lixeira",
       "copyPath": "Copiar Caminho",
-      "showInFolder": "Mostrar na Pasta"
+      "showInFolder": "Mostrar na Pasta",
+      "addFolder": "Adicionar pasta à barra lateral...",
+      "removeFolder": "Remover pasta da barra lateral"
     },
     "tabs": {
       "close": "Fechar",
@@ -252,7 +255,10 @@
       "closeAll": "Fechar Todos",
       "emptyProject": "Projeto vazio",
       "createFile": "Criar Arquivo",
-      "openFolder": "Abrir Pasta"
+      "openFolder": "Abrir Pasta",
+      "addFolder": "Adicionar pasta à barra lateral",
+      "folders": "{count} pastas",
+      "recentFolders": "Pastas recentes"
     },
     "toc": {
       "expand": "Expandir sumário",
@@ -815,6 +821,7 @@
       "newTab": "Nova Aba",
       "openFile": "Abrir Arquivo",
       "openFolder": "Abrir Pasta",
+      "addFolder": "Adicionar pasta à barra lateral",
       "save": "Salvar",
       "saveAs": "Salvar Como",
       "moveFile": "Mover Arquivo",

@@ -16,6 +16,7 @@
       "newWindow": "新建視窗",
       "openFile": "開啟檔案…",
       "openFolder": "開啟資料夾…",
+      "addFolder": "新增資料夾到側邊欄...",
       "openRecent": "開啟最近使用",
       "clearRecentlyUsed": "清除最近使用",
       "save": "儲存",
@@ -210,7 +211,9 @@
       "rename": "重新命名",
       "moveToTrash": "移到垃圾桶",
       "copyPath": "複製路徑",
-      "showInFolder": "在資料夾中顯示"
+      "showInFolder": "在資料夾中顯示",
+      "addFolder": "新增資料夾到側邊欄...",
+      "removeFolder": "從側邊欄移除資料夾"
     },
     "tabs": {
       "close": "關閉",
@@ -252,7 +255,10 @@
       "closeAll": "全部關閉",
       "emptyProject": "空專案",
       "createFile": "建立檔案",
-      "openFolder": "開啟資料夾"
+      "openFolder": "開啟資料夾",
+      "addFolder": "新增資料夾到側邊欄",
+      "folders": "{count} 個資料夾",
+      "recentFolders": "最近開啟的資料夾"
     },
     "toc": {
       "expand": "展開目錄",
@@ -815,6 +821,7 @@
       "newTab": "新建標籤頁",
       "openFile": "開啟檔案",
       "openFolder": "開啟資料夾",
+      "addFolder": "新增資料夾到側邊欄",
       "save": "儲存",
       "saveAs": "另存為",
       "moveFile": "移動檔案",

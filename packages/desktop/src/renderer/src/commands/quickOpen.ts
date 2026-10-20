@@ -15,6 +15,8 @@ interface QuickOpenSubcommand {
 
 interface FolderState {
   projectTree: { pathname: string } | null
+  // Every folder shown in the side bar, the root folder first.
+  projectTrees?: Array<{ pathname: string }>
 }
 type RootState = { editor: EditorState; project: FolderState; [key: string]: unknown }
 
@@ -118,7 +120,7 @@ class QuickOpenCommand {
     }
 
     const searchResult: string[] = []
-    const rootPath: string | null = isRootDirOpened ? _folderState.projectTree!.pathname : null
+    const rootPaths = this._getRootPaths()
 
     // Add files that are not in the current root directory but opened.
     if (tabsAvailable) {
@@ -135,7 +137,7 @@ class QuickOpenCommand {
         if (
           pathname &&
           re.test(pathname) &&
-          (!rootPath || !window.fileUtils.isChildOfDirectory(rootPath, pathname))
+          !rootPaths.some((rootPath) => window.fileUtils.isChildOfDirectory(rootPath, pathname))
         ) {
           searchResult.push(pathname)
         }
@@ -156,7 +158,7 @@ class QuickOpenCommand {
     return new Promise<QuickOpenSubcommand[]>((resolve, reject) => {
       let canceled = false
       const promises: Promise<void> & { cancel?: () => void } = this._directorySearcher
-        .search([rootPath!], '', {
+        .search(rootPaths, '', {
           didMatch: (result: unknown) => {
             if (canceled) return
             searchResult.push(result as string)
@@ -212,14 +214,25 @@ class QuickOpenCommand {
     return inclusions
   }
 
+  _getRootPaths = (): string[] => {
+    const { projectTree, projectTrees } = this._folderState
+    if (projectTrees && projectTrees.length) return projectTrees.map((tree) => tree.pathname)
+    return projectTree ? [projectTree.pathname] : []
+  }
+
   _getPath = (pathname: string): { title?: string; description: string } => {
     // Files can be open without a folder; show their full path then.
-    const rootPath = this._folderState.projectTree?.pathname
-    if (!rootPath || !window.fileUtils.isChildOfDirectory(rootPath, pathname)) {
+    const rootPaths = this._getRootPaths()
+    const rootPath = rootPaths
+      .filter((root) => window.fileUtils.isChildOfDirectory(root, pathname))
+      .sort((a, b) => b.length - a.length)[0]
+    if (!rootPath) {
       return { title: pathname, description: pathname }
     }
 
-    const p = window.path.relative(rootPath, pathname)
+    // With several folders open, name the folder the file belongs to.
+    const relative = window.path.relative(rootPath, pathname)
+    const p = rootPaths.length > 1 ? window.path.join(window.path.basename(rootPath), relative) : relative
     const item: { title?: string; description: string } = { description: p }
     if (p.length > 50) {
       item.title = p

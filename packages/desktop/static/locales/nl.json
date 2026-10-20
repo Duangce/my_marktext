@@ -16,6 +16,7 @@
       "newWindow": "Nieuw venster",
       "openFile": "Bestand openen...",
       "openFolder": "Map openen...",
+      "addFolder": "Map aan zijbalk toevoegen...",
       "openRecent": "Recent geopend",
       "clearRecentlyUsed": "Recent gewist",
       "save": "Opslaan",
@@ -210,7 +211,9 @@
       "rename": "Hernoemen",
       "moveToTrash": "Naar prullenbak",
       "copyPath": "Pad kopiëren",
-      "showInFolder": "Tonen in map"
+      "showInFolder": "Tonen in map",
+      "addFolder": "Map aan zijbalk toevoegen...",
+      "removeFolder": "Map uit zijbalk verwijderen"
     },
     "tabs": {
       "close": "Sluiten",
@@ -252,7 +255,10 @@
       "closeAll": "Alles sluiten",
       "emptyProject": "Leeg project",
       "createFile": "Bestand aanmaken",
-      "openFolder": "Map openen"
+      "openFolder": "Map openen",
+      "addFolder": "Map aan zijbalk toevoegen",
+      "folders": "{count} mappen",
+      "recentFolders": "Recente mappen"
     },
     "toc": {
       "expand": "Inhoudsopgave uitklappen",
@@ -815,6 +821,7 @@
       "newTab": "Nieuw tabblad",
       "openFile": "Bestand openen",
       "openFolder": "Map openen",
+      "addFolder": "Map aan zijbalk toevoegen",
       "save": "Opslaan",
       "saveAs": "Opslaan als",
       "moveFile": "Bestand verplaatsen",

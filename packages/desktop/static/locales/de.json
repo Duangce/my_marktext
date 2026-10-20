@@ -16,6 +16,7 @@
       "newWindow": "Neues Fenster",
       "openFile": "Datei öffnen...",
       "openFolder": "Ordner öffnen...",
+      "addFolder": "Ordner zur Seitenleiste hinzufügen...",
       "openRecent": "Zuletzt verwendet",
       "clearRecentlyUsed": "Zuletzt verwendet löschen",
       "save": "Speichern",
@@ -210,7 +211,9 @@
       "rename": "Umbenennen",
       "moveToTrash": "In Papierkorb verschieben",
       "copyPath": "Pfad kopieren",
-      "showInFolder": "Im Ordner anzeigen"
+      "showInFolder": "Im Ordner anzeigen",
+      "addFolder": "Ordner zur Seitenleiste hinzufügen...",
+      "removeFolder": "Ordner aus der Seitenleiste entfernen"
     },
     "tabs": {
       "close": "Schließen",
@@ -252,7 +255,10 @@
       "closeAll": "Alle schließen",
       "emptyProject": "Leeres Projekt",
       "createFile": "Datei erstellen",
-      "openFolder": "Ordner öffnen"
+      "openFolder": "Ordner öffnen",
+      "addFolder": "Ordner zur Seitenleiste hinzufügen",
+      "folders": "{count} Ordner",
+      "recentFolders": "Zuletzt verwendete Ordner"
     },
     "toc": {
       "expand": "Inhaltsverzeichnis aufklappen",
@@ -815,6 +821,7 @@
       "newTab": "Neuer Tab",
       "openFile": "Datei öffnen",
       "openFolder": "Ordner öffnen",
+      "addFolder": "Ordner zur Seitenleiste hinzufügen",
       "save": "Speichern",
       "saveAs": "Speichern unter",
       "moveFile": "Datei verschieben",

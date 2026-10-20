@@ -90,3 +90,19 @@ export const RENAME = getRENAME()
 export const DELETE = getDELETE()
 export const COPY_PATH = getCopyPath()
 export const SHOW_IN_FOLDER = getShowInFolder()
+
+export const getAddFolder = () => ({
+  label: t('contextMenu.sideBar.addFolder'),
+  id: 'addFolderMenuItem',
+  click(_menuItem: unknown, _browserWindow: unknown) {
+    contextMenu.addFolder()
+  }
+})
+
+export const getRemoveFolder = () => ({
+  label: t('contextMenu.sideBar.removeFolder'),
+  id: 'removeFolderMenuItem',
+  click(_menuItem: unknown, _browserWindow: unknown) {
+    contextMenu.removeFolder()
+  }
+})

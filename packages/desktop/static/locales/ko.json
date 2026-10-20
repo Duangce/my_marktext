@@ -16,6 +16,7 @@
       "newWindow": "새 창",
       "openFile": "파일 열기...",
       "openFolder": "폴더 열기...",
+      "addFolder": "사이드바에 폴더 추가...",
       "openRecent": "최근 파일",
       "clearRecentlyUsed": "최근 사용 목록 지우기",
       "save": "저장",
@@ -210,7 +211,9 @@
       "rename": "이름 바꾸기",
       "moveToTrash": "휴지통으로 이동",
       "copyPath": "경로 복사",
-      "showInFolder": "폴더에서 보기"
+      "showInFolder": "폴더에서 보기",
+      "addFolder": "사이드바에 폴더 추가...",
+      "removeFolder": "사이드바에서 폴더 제거"
     },
     "tabs": {
       "close": "닫기",
@@ -252,7 +255,10 @@
       "closeAll": "모두 닫기",
       "emptyProject": "빈 프로젝트",
       "createFile": "파일 만들기",
-      "openFolder": "폴더 열기"
+      "openFolder": "폴더 열기",
+      "addFolder": "사이드바에 폴더 추가",
+      "folders": "폴더 {count}개",
+      "recentFolders": "최근 폴더"
     },
     "toc": {
       "expand": "목차 펼치기",
@@ -815,6 +821,7 @@
       "newTab": "새 탭",
       "openFile": "파일 열기",
       "openFolder": "폴더 열기",
+      "addFolder": "사이드바에 폴더 추가",
       "save": "저장",
       "saveAs": "다른 이름으로 저장",
       "moveFile": "파일 이동",

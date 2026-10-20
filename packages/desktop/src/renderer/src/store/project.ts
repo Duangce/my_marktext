@@ -1,4 +1,4 @@
-import { nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import {
   addFile,
@@ -51,14 +51,36 @@ const createProjectRoot = (pathname: string): ProjectTree | null => {
 
 interface BufferedProjectState {
   rootDirectory: string
+  extraDirectories: string[]
 }
 
 const createBufferedProjectState = (state: unknown): BufferedProjectState => {
-  const s = (state || {}) as { rootDirectory?: string; projectTree?: { pathname?: string } }
+  const s = (state || {}) as {
+    rootDirectory?: string
+    projectTree?: { pathname?: string }
+    extraDirectories?: unknown
+    extraProjectTrees?: Array<{ pathname?: string }>
+  }
+  const extras = Array.isArray(s.extraDirectories)
+    ? s.extraDirectories
+    : (s.extraProjectTrees ?? []).map((tree) => tree?.pathname)
   return {
-    rootDirectory: normalizeProjectRoot(s.rootDirectory || s.projectTree?.pathname)
+    rootDirectory: normalizeProjectRoot(s.rootDirectory || s.projectTree?.pathname),
+    extraDirectories: extras
+      .filter((p): p is string => typeof p === 'string' && !!p)
+      .map((p) => normalizeProjectRoot(p))
   }
 }
+
+/** Whether `pathname` is `root` itself or lies inside it. */
+const isInsideRoot = (root: string, pathname: string): boolean => {
+  if (!root || !pathname) return false
+  const relative = window.path.relative(root, pathname)
+  return relative === '' || (!relative.startsWith('..') && !window.path.isAbsolute(relative))
+}
+
+const isSameRoot = (a: string, b: string): boolean =>
+  window.path.normalize(a) === window.path.normalize(b) || window.fileUtils.isSamePathSync(a, b)
 
 interface OpenProjectOptions {
   scheduleBufferUpdate?: boolean
@@ -94,6 +116,11 @@ export const useProjectStore = defineStore('project', () => {
   const nameInputValue = ref<string>('')
   const clipboard = ref<ClipboardEntry | null>(null)
   const projectTree = ref<ProjectTree | null>(null)
+  // Folders added to the side bar below the root folder (`projectTree`).
+  const extraProjectTrees = ref<ProjectTree[]>([])
+  const projectTrees = computed<ProjectTree[]>(() =>
+    projectTree.value ? [projectTree.value, ...extraProjectTrees.value] : []
+  )
   const treeVersion = ref(0)
   const pendingTreeEvents = ref<PendingEvent[]>([])
 
@@ -102,8 +129,8 @@ export const useProjectStore = defineStore('project', () => {
   watch(
     [() => preferencesStore.fileSortBy, () => preferencesStore.fileSortOrder],
     ([sortBy, sortOrder]) => {
-      if (projectTree.value) {
-        resortTree(projectTree.value, String(sortBy), String(sortOrder))
+      for (const tree of projectTrees.value) {
+        resortTree(tree, String(sortBy), String(sortOrder))
       }
     }
   )
@@ -117,6 +144,7 @@ export const useProjectStore = defineStore('project', () => {
     if (!tree) return
 
     projectTree.value = tree
+    extraProjectTrees.value = []
     // The old tree's selection and in-progress name inputs do not survive a new root.
     activeItem.value = {}
     CLEAR_NAME_INPUT_STATE()
@@ -129,30 +157,107 @@ export const useProjectStore = defineStore('project', () => {
     layoutStore.SET_LAYOUT(layout, { scheduleBufferUpdate })
     layoutStore.DISPATCH_LAYOUT_MENU_ITEMS()
 
-    // Process pending events that arrived before projectTree was initialized.
-    for (const event of pendingTreeEvents.value) {
-      _processTreeEvent(event.type, event.change)
-    }
-    pendingTreeEvents.value = []
+    _flushPendingTreeEvents()
 
     if (scheduleBufferUpdate) {
       debouncedSendBufferedState()
     }
   }
 
+  /**
+   * Show another folder in the side bar below the opened ones. Becomes the
+   * root folder when none is open yet.
+   */
+  function ADD_PROJECT_FOLDER(
+    pathname: string,
+    { scheduleBufferUpdate = true }: OpenProjectOptions = {}
+  ): void {
+    if (!projectTree.value) {
+      OPEN_PROJECT(pathname, { scheduleBufferUpdate })
+      return
+    }
+    const tree = createProjectRoot(pathname)
+    if (!tree || projectTrees.value.some((t) => isSameRoot(t.pathname, tree.pathname))) return
+
+    extraProjectTrees.value.push(tree)
+    const layoutStore = useLayoutStore()
+    layoutStore.SET_LAYOUT({ rightColumn: 'files', showSideBar: true }, { scheduleBufferUpdate })
+    _flushPendingTreeEvents()
+
+    if (scheduleBufferUpdate) {
+      debouncedSendBufferedState()
+    }
+  }
+
+  /**
+   * Remove a folder from the side bar (the files stay on disk). Removing the
+   * root folder makes the next folder the root.
+   */
+  function REMOVE_PROJECT_FOLDER(pathname: string): void {
+    if (!pathname) return
+    const index = extraProjectTrees.value.findIndex((t) => isSameRoot(t.pathname, pathname))
+    let removed: ProjectTree | null = null
+    if (index !== -1) {
+      removed = extraProjectTrees.value.splice(index, 1)[0] ?? null
+    } else if (projectTree.value && isSameRoot(projectTree.value.pathname, pathname)) {
+      removed = projectTree.value
+      projectTree.value = extraProjectTrees.value.shift() ?? null
+    }
+    if (!removed) return
+
+    const selected = activeItem.value?.pathname
+    if (typeof selected === 'string' && isInsideRoot(removed.pathname, selected)) {
+      activeItem.value = {}
+      CLEAR_NAME_INPUT_STATE()
+    }
+    window.electron.ipcRenderer.send('mt::remove-project-folder', removed.pathname)
+    debouncedSendBufferedState()
+  }
+
+  /** The opened folder a path belongs to; the innermost one when folders nest. */
+  function _findTreeForPath(pathname: string | undefined): ProjectTree | null {
+    if (!pathname) return projectTree.value
+    let match: ProjectTree | null = null
+    for (const tree of projectTrees.value) {
+      if (isInsideRoot(tree.pathname, pathname) && (!match || tree.pathname.length > match.pathname.length)) {
+        match = tree
+      }
+    }
+    return match
+  }
+
+  // Replay events that arrived before the folder they belong to was shown.
+  function _flushPendingTreeEvents(): void {
+    const pending = pendingTreeEvents.value
+    pendingTreeEvents.value = []
+    for (const event of pending) {
+      if (_findTreeForPath(event.change?.pathname)) {
+        _processTreeEvent(event.type, event.change)
+      } else {
+        pendingTreeEvents.value.push(event)
+      }
+    }
+  }
+
   function CREATE_BUFFERED_STATE(): BufferedProjectState {
     return createBufferedProjectState({
-      projectTree: projectTree.value
+      projectTree: projectTree.value,
+      extraProjectTrees: extraProjectTrees.value
     })
   }
 
   function RESTORE_BUFFERED_STATE(state: unknown): void {
-    const { rootDirectory } = createBufferedProjectState(state)
+    const { rootDirectory, extraDirectories } = createBufferedProjectState(state)
     if (rootDirectory) {
-      if (projectTree.value?.pathname === rootDirectory) return
-      OPEN_PROJECT(rootDirectory, { scheduleBufferUpdate: false })
+      if (projectTree.value?.pathname !== rootDirectory) {
+        OPEN_PROJECT(rootDirectory, { scheduleBufferUpdate: false })
+      }
+      for (const extra of extraDirectories) {
+        ADD_PROJECT_FOLDER(extra, { scheduleBufferUpdate: false })
+      }
     } else {
       projectTree.value = null
+      extraProjectTrees.value = []
       pendingTreeEvents.value = []
       activeItem.value = {}
       CLEAR_NAME_INPUT_STATE()
@@ -163,12 +268,15 @@ export const useProjectStore = defineStore('project', () => {
     window.electron.ipcRenderer.on('mt::open-directory', (_e, pathname) => {
       OPEN_PROJECT(String(pathname))
     })
+    window.electron.ipcRenderer.on('mt::add-directory', (_e, pathname) => {
+      ADD_PROJECT_FOLDER(String(pathname))
+    })
   }
 
   function LISTEN_FOR_UPDATE_PROJECT(): void {
     window.electron.ipcRenderer.on('mt::update-object-tree', (_e, payload) => {
       const { type, change } = (payload as { type: string; change: TreeChange }) ?? {}
-      if (!projectTree.value) {
+      if (!_findTreeForPath(change?.pathname)) {
         pendingTreeEvents.value.push({ type, change })
         return
       }
@@ -178,10 +286,12 @@ export const useProjectStore = defineStore('project', () => {
 
   function _processTreeEvent(type: string, change: TreeChange): void {
     const editorStore = useEditorStore()
+    const tree = _findTreeForPath(change?.pathname)
+    if (!tree) return
     switch (type) {
       case 'add': {
         const { pathname, data, isMarkdown } = change
-        addFile(projectTree.value!, change as Parameters<typeof addFile>[1], String(preferencesStore.fileSortBy), String(preferencesStore.fileSortOrder))
+        addFile(tree, change as Parameters<typeof addFile>[1], String(preferencesStore.fileSortBy), String(preferencesStore.fileSortOrder))
         if (isMarkdown && newFileNameCache.value && pathname === newFileNameCache.value) {
           const fileState = getFileStateFromData(data as Record<string, unknown>)
           editorStore.UPDATE_CURRENT_FILE(fileState)
@@ -190,18 +300,18 @@ export const useProjectStore = defineStore('project', () => {
         break
       }
       case 'unlink':
-        unlinkFile(projectTree.value!, change)
+        unlinkFile(tree, change)
         editorStore.SET_SAVE_STATUS_WHEN_REMOVE(change)
         break
       case 'addDir':
-        addDirectory(projectTree.value!, change)
+        addDirectory(tree, change)
         break
       case 'unlinkDir':
-        unlinkDirectory(projectTree.value!, change)
+        unlinkDirectory(tree, change)
         break
       case 'change':
         if (change?.mtimeMs !== undefined) {
-          updateFileMtime(projectTree.value!, change as Parameters<typeof updateFileMtime>[1], String(preferencesStore.fileSortBy), String(preferencesStore.fileSortOrder))
+          updateFileMtime(tree, change as Parameters<typeof updateFileMtime>[1], String(preferencesStore.fileSortBy), String(preferencesStore.fileSortOrder))
         }
         break
       default:
@@ -222,8 +332,10 @@ export const useProjectStore = defineStore('project', () => {
 
   /** Expands the folders leading to `pathname`; false when it is not in the tree. */
   function REVEAL_PATH(pathname: string | null | undefined): boolean {
-    if (!pathname || !projectTree.value) return false
-    return expandAncestors(projectTree.value, pathname) !== null
+    if (!pathname) return false
+    const tree = _findTreeForPath(pathname)
+    if (!tree) return false
+    return expandAncestors(tree, pathname) !== null
   }
 
   function REVEAL_FILE_IN_SIDE_BAR(pathname?: string | null): void {
@@ -268,6 +380,14 @@ export const useProjectStore = defineStore('project', () => {
 
   function ASK_FOR_OPEN_PROJECT(): void {
     window.electron.ipcRenderer.send('mt::ask-for-open-project-in-sidebar')
+  }
+
+  function ASK_FOR_ADD_PROJECT_FOLDER(): void {
+    window.electron.ipcRenderer.send('mt::ask-for-add-folder-in-sidebar')
+  }
+
+  function OPEN_RECENT_FOLDER(pathname: string): void {
+    window.electron.ipcRenderer.send('mt::open-recent-folder', pathname)
   }
 
   function LISTEN_FOR_SIDEBAR_CONTEXT_MENU(): void {
@@ -361,6 +481,13 @@ export const useProjectStore = defineStore('project', () => {
             })
           })
       }
+    })
+    bus.on('SIDEBAR::add-folder', () => {
+      ASK_FOR_ADD_PROJECT_FOLDER()
+    })
+    bus.on('SIDEBAR::remove-folder', () => {
+      const { pathname } = activeItem.value
+      if (typeof pathname === 'string') REMOVE_PROJECT_FOLDER(pathname)
     })
     bus.on('SIDEBAR::rename', () => {
       const { pathname } = activeItem.value
@@ -456,9 +583,13 @@ export const useProjectStore = defineStore('project', () => {
     nameInputValue,
     clipboard,
     projectTree,
+    extraProjectTrees,
+    projectTrees,
     treeVersion,
     pendingTreeEvents,
     OPEN_PROJECT,
+    ADD_PROJECT_FOLDER,
+    REMOVE_PROJECT_FOLDER,
     CREATE_BUFFERED_STATE,
     RESTORE_BUFFERED_STATE,
     LISTEN_FOR_LOAD_PROJECT,
@@ -471,6 +602,8 @@ export const useProjectStore = defineStore('project', () => {
     COMMIT_NAME_INPUT,
     SET_FOLDER_COLLAPSED,
     ASK_FOR_OPEN_PROJECT,
+    ASK_FOR_ADD_PROJECT_FOLDER,
+    OPEN_RECENT_FOLDER,
     LISTEN_FOR_SIDEBAR_CONTEXT_MENU,
     CREATE_FILE_DIRECTORY,
     RENAME_IN_SIDEBAR,

@@ -65,14 +65,14 @@
       </div>
     </div>
 
-    <!-- Project tree view -->
+    <!-- Project tree view: the root folder plus any folders added next to it -->
     <div
       v-if="projectTree"
       class="project-tree"
     >
       <div
         class="title"
-        @contextmenu.prevent="handleRootContextMenu"
+        @contextmenu.prevent="handleRootContextMenu(isMultiRoot ? null : projectTree, $event)"
       >
         <el-icon
           class="icon-arrow"
@@ -84,10 +84,23 @@
         </el-icon>
         <span
           class="default-cursor text-overflow"
+          :title="isMultiRoot ? undefined : projectTree.pathname"
           @click.stop="toggleDirectories()"
         >{{
-          projectTree.name
+          isMultiRoot ? t('sideBar.tree.folders', { count: projectTrees.length }) : projectTree.name
         }}</span>
+        <icon-tooltip :content="t('sideBar.tree.addFolder')">
+          <button
+            type="button"
+            class="plain-button add-folder-button"
+            :aria-label="t('sideBar.tree.addFolder')"
+            @click.stop="addFolder"
+          >
+            <el-icon :size="14">
+              <FolderAdd />
+            </el-icon>
+          </button>
+        </icon-tooltip>
       </div>
       <div
         v-show="showDirectories"
@@ -98,45 +111,70 @@
         @focusout="handleTreeFocusOut"
         @keydown="handleTreeKeydown"
       >
-        <folder
-          v-for="folder of projectTree.folders"
-          :key="folder.id"
-          :folder="folder"
-          :depth="depth"
-        />
-        <input
-          v-show="createCacheDirname === projectTree.pathname"
-          ref="input"
-          v-model="nameInputValue"
-          placeholder="Enter .md file name"
-          type="text"
-          class="new-input"
-          :style="{ 'margin-left': `${depth * 5 + 15}px` }"
-          @keypress.enter="handleInputEnter"
-        >
-        <file
-          v-for="file of projectTree.files"
-          :key="file.id"
-          :file="file"
-          :depth="depth"
-        />
         <div
-          v-if="
-            projectTree.files.length === 0 &&
-              projectTree.folders.length === 0 &&
-              createCacheDirname !== projectTree.pathname
-          "
-          class="empty-project"
+          v-for="root of projectTrees"
+          :key="root.pathname"
+          class="project-root"
         >
-          <span>{{ t('sideBar.tree.emptyProject') }}</span>
-          <div class="centered-group">
-            <button
-              class="button-primary"
-              @click.stop="createFile"
+          <div
+            v-if="isMultiRoot"
+            class="project-root-name"
+            :class="{ active: activeItem && activeItem.pathname === root.pathname }"
+            :title="root.pathname"
+            @click="toggleRoot(root)"
+            @contextmenu.prevent.stop="handleRootContextMenu(root, $event)"
+          >
+            <el-icon
+              class="icon-arrow"
+              :class="{ fold: isRootCollapsed(root) }"
+              :size="12"
             >
-              {{ t('sideBar.tree.createFile') }}
-            </button>
+              <ArrowRight />
+            </el-icon>
+            <span class="text-overflow">{{ root.name }}</span>
           </div>
+          <template v-if="!isMultiRoot || !isRootCollapsed(root)">
+            <folder
+              v-for="folder of root.folders"
+              :key="folder.id"
+              :folder="folder"
+              :depth="rootDepth"
+            />
+            <input
+              v-if="createCacheDirname === root.pathname"
+              ref="input"
+              v-model="nameInputValue"
+              placeholder="Enter .md file name"
+              type="text"
+              class="new-input"
+              :style="{ 'margin-left': `${rootDepth * 5 + 15}px` }"
+              @keypress.enter="handleInputEnter"
+            >
+            <file
+              v-for="file of root.files"
+              :key="file.id"
+              :file="file"
+              :depth="rootDepth"
+            />
+            <div
+              v-if="
+                root.files.length === 0 &&
+                  root.folders.length === 0 &&
+                  createCacheDirname !== root.pathname
+              "
+              class="empty-project"
+            >
+              <span>{{ t('sideBar.tree.emptyProject') }}</span>
+              <div class="centered-group">
+                <button
+                  class="button-primary"
+                  @click.stop="createFile(root)"
+                >
+                  {{ t('sideBar.tree.createFile') }}
+                </button>
+              </div>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -154,6 +192,25 @@
           {{ t('sideBar.tree.openFolder') }}
         </el-button>
       </div>
+      <div
+        v-if="recentFolders.length"
+        class="recent-folders"
+      >
+        <div class="recent-folders-title">
+          {{ t('sideBar.tree.recentFolders') }}
+        </div>
+        <button
+          v-for="folder of recentFolders"
+          :key="folder"
+          type="button"
+          class="recent-folder"
+          :title="folder"
+          @click="openRecentFolder(folder)"
+        >
+          <span class="recent-folder-name text-overflow">{{ folderName(folder) }}</span>
+          <span class="recent-folder-path text-overflow">{{ folder }}</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -170,9 +227,9 @@ import File from './treeFile.vue'
 import OpenedFile from './treeOpenedTab.vue'
 import IconTooltip from '@/components/iconTooltip/index.vue'
 import bus from '../../bus'
-import { showContextMenu } from '../../contextMenu/sideBar'
+import { showRootContextMenu } from '../../contextMenu/sideBar'
 import { useI18n } from 'vue-i18n'
-import { ArrowRight } from '@element-plus/icons-vue'
+import { ArrowRight, FolderAdd } from '@element-plus/icons-vue'
 import { PATH_SEPARATOR } from '@/config'
 import { isMac } from '@/util'
 import { computeRevealScrollTop } from '@/util/revealTreeRow'
@@ -180,12 +237,13 @@ import {
   isEditableTarget,
   isInsideTreeScope,
   isNameInput,
+  isPathWithinRoot,
   keepsSidebarSelection,
   shouldTrashSelection
 } from './trashKey'
 import { shouldRenameSelection } from './renameKey'
 import { TREE_ROW_REGISTRY_KEY, toRowKey, type TreeRowRegistry } from './rowRegistry'
-import type { TreeNode, TabDescriptor } from './types'
+import type { TreeNode, TreeFolderNode, TabDescriptor } from './types'
 
 const { t } = useI18n()
 
@@ -206,7 +264,9 @@ const SHOW_OPENED_FILES_KEY = 'side-bar-show-opened-files'
 const readSectionExpanded = (key: string): boolean => localStorage.getItem(key) !== 'false'
 const showDirectories = ref(readSectionExpanded(SHOW_DIRECTORIES_KEY))
 const showOpenedFiles = ref(readSectionExpanded(SHOW_OPENED_FILES_KEY))
-const input = ref<HTMLInputElement | null>(null)
+// The new-file input sits inside the per-folder `v-for`, so Vue collects it
+// into an array; at most one is rendered at a time.
+const input = ref<HTMLInputElement | HTMLInputElement[] | null>(null)
 const treeWrapper = ref<HTMLDivElement | null>(null)
 
 const rowRegistry: TreeRowRegistry = new Map()
@@ -223,7 +283,60 @@ const { clipboard } = storeToRefs(projectStore)
 const { activeItem } = storeToRefs(projectStore)
 const { renameCache } = storeToRefs(projectStore)
 const { nameInputValue } = storeToRefs(projectStore)
+const { projectTrees } = storeToRefs(projectStore)
 const { openedFilesInSidebar } = storeToRefs(preferencesStore)
+
+// With several folders open each gets its own collapsible row, so their
+// contents start one level deeper.
+const isMultiRoot = computed<boolean>(() => projectTrees.value.length > 1)
+const rootDepth = computed<number>(() => (isMultiRoot.value ? 1 : 0))
+
+const isRootCollapsed = (root: TreeNode): boolean => !!(root as TreeFolderNode).isCollapsed
+
+const toggleRoot = (root: TreeNode): void => {
+  projectStore.CHANGE_ACTIVE_ITEM(root)
+  projectStore.SET_FOLDER_COLLAPSED(root as TreeFolderNode, !isRootCollapsed(root))
+}
+
+// The opened folder the selection belongs to: rename/trash shortcuts must
+// never act on that folder itself.
+const selectionRootPath = (): string | undefined => {
+  const pathname = activeItem.value?.pathname
+  if (typeof pathname !== 'string') return props.projectTree?.pathname
+  const root = [...projectTrees.value]
+    .sort((a, b) => b.pathname.length - a.pathname.length)
+    .find((tree) => isPathWithinRoot(pathname, tree.pathname, PATH_SEPARATOR))
+  return root?.pathname ?? props.projectTree?.pathname
+}
+
+// Recently used folders, offered while no folder is open.
+const recentFolders = ref<string[]>([])
+const MAX_RECENT_FOLDERS = 8
+const loadRecentFolders = async (): Promise<void> => {
+  try {
+    const folders = await window.electron.ipcRenderer.invoke('mt::get-recent-folders')
+    recentFolders.value = Array.isArray(folders) ? folders.slice(0, MAX_RECENT_FOLDERS) : []
+  } catch {
+    recentFolders.value = []
+  }
+}
+watch(
+  () => props.projectTree,
+  (tree) => {
+    if (!tree) loadRecentFolders()
+  },
+  { immediate: true }
+)
+
+const folderName = (pathname: string): string => window.path.basename(pathname) || pathname
+
+const openRecentFolder = (pathname: string): void => {
+  projectStore.OPEN_RECENT_FOLDER(pathname)
+}
+
+const addFolder = (): void => {
+  projectStore.ASK_FOR_ADD_PROJECT_FOLDER()
+}
 
 // The createCache state is `{ dirname, type }` while an input is shown, and
 // `{}` otherwise. Expose a typed accessor for the template so we don't have
@@ -242,14 +355,15 @@ const saveAll = (isClose: boolean): void => {
   editorStore.ASK_FOR_SAVE_ALL(isClose)
 }
 
-const createFile = (): void => {
-  projectStore.CHANGE_ACTIVE_ITEM(props.projectTree)
+const createFile = (root: TreeNode | null = props.projectTree): void => {
+  projectStore.CHANGE_ACTIVE_ITEM(root)
   bus.emit('SIDEBAR::new', 'file')
 }
 
-const handleRootContextMenu = (event: MouseEvent): void => {
-  projectStore.CHANGE_ACTIVE_ITEM(props.projectTree)
-  showContextMenu(event, !!clipboard.value)
+// `root` is null for the shared "Folders" header shown with several folders.
+const handleRootContextMenu = (root: TreeNode | null, event: MouseEvent): void => {
+  if (root) projectStore.CHANGE_ACTIVE_ITEM(root)
+  showRootContextMenu(event, { hasPathCache: !!clipboard.value, forFolder: !!root })
 }
 
 const toggleOpenedFiles = (): void => {
@@ -322,9 +436,8 @@ const handleRevealPath = (pathname: unknown): void => {
 // From createFileOrDirectoryMixins
 const handleInputFocus = (): void => {
   nextTick(() => {
-    if (input.value) {
-      input.value.focus()
-    }
+    const element = Array.isArray(input.value) ? input.value[0] : input.value
+    element?.focus()
   })
 }
 
@@ -387,7 +500,7 @@ const handleTreeKeydown = (event: KeyboardEvent): void => {
   const shouldRename = shouldRenameSelection({
     key,
     selection: activeItem.value,
-    projectRootPath: props.projectTree?.pathname,
+    projectRootPath: selectionRootPath(),
     pathSeparator: PATH_SEPARATOR,
     isEditingName,
     editableTarget
@@ -403,7 +516,7 @@ const handleTreeKeydown = (event: KeyboardEvent): void => {
     metaKey,
     isMac,
     selection: activeItem.value,
-    projectRootPath: props.projectTree?.pathname,
+    projectRootPath: selectionRootPath(),
     pathSeparator: PATH_SEPARATOR,
     isEditingName,
     editableTarget
@@ -572,6 +685,76 @@ onUnmounted(() => {
 .project-tree > .tree-wrapper {
   overflow: auto;
   flex: 1;
+}
+
+/* Revealed on hover/focus like the opened-files header buttons. */
+.project-tree > .title .add-folder-button {
+  color: var(--sideBarColor);
+  margin-left: 8px;
+  clip-path: inset(50%);
+}
+.project-tree > .title:hover .add-folder-button,
+.project-tree > .title:focus-within .add-folder-button {
+  clip-path: none;
+}
+.project-tree > .title .add-folder-button:hover {
+  color: var(--highlightThemeColor);
+}
+
+.project-root-name {
+  cursor: default;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 15px;
+  font-weight: 600;
+}
+.project-root-name:hover {
+  background: var(--sideBarItemHoverBgColor);
+}
+.project-root-name.active {
+  color: var(--highlightThemeColor);
+}
+.project-root-name > .text-overflow {
+  flex: 1;
+}
+
+.recent-folders {
+  width: 100%;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+.recent-folders-title {
+  font-size: 12px;
+  opacity: 0.7;
+  margin: 0 4px 6px;
+}
+.recent-folder {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 4px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--sideBarColor);
+  text-align: left;
+  cursor: pointer;
+}
+.recent-folder:hover,
+.recent-folder:focus-visible {
+  background: var(--sideBarItemHoverBgColor);
+}
+.recent-folder-name {
+  max-width: 100%;
+  font-size: 13px;
+}
+.recent-folder-path {
+  max-width: 100%;
+  font-size: 11px;
+  opacity: 0.6;
 }
 
 .project-tree > .tree-wrapper::-webkit-scrollbar:vertical {

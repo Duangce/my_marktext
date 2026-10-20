@@ -16,6 +16,7 @@
       "newWindow": "Nueva Ventana",
       "openFile": "Abrir Archivo...",
       "openFolder": "Abrir Carpeta...",
+      "addFolder": "Añadir carpeta a la barra lateral...",
       "openRecent": "Abrir Reciente",
       "clearRecentlyUsed": "Limpiar Recientes",
       "save": "Guardar",
@@ -210,7 +211,9 @@
       "rename": "Renombrar",
       "moveToTrash": "Mover a la Papelera",
       "copyPath": "Copiar Ruta",
-      "showInFolder": "Mostrar en Carpeta"
+      "showInFolder": "Mostrar en Carpeta",
+      "addFolder": "Añadir carpeta a la barra lateral...",
+      "removeFolder": "Quitar carpeta de la barra lateral"
     },
     "tabs": {
       "close": "Cerrar",
@@ -252,7 +255,10 @@
       "closeAll": "Cerrar",
       "emptyProject": "Proyecto vacío",
       "createFile": "Crear Archivo",
-      "openFolder": "Abrir Carpeta"
+      "openFolder": "Abrir Carpeta",
+      "addFolder": "Añadir carpeta a la barra lateral",
+      "folders": "{count} carpetas",
+      "recentFolders": "Carpetas recientes"
     },
     "toc": {
       "expand": "Expandir tabla de contenido",
@@ -815,6 +821,7 @@
       "newTab": "Nueva Pestaña",
       "openFile": "Abrir Archivo",
       "openFolder": "Abrir Carpeta",
+      "addFolder": "Añadir carpeta a la barra lateral",
       "save": "Guardar",
       "saveAs": "Guardar Como",
       "moveFile": "Mover Archivo",

@@ -724,6 +724,16 @@ class App {
       }
     })
 
+    onInternalChannel('app-add-directory-by-id', (windowId: number, pathname: string) => {
+      const editor = this._windowManager.get(windowId) as EditorWindow | undefined
+      editor?.addFolder(pathname)
+    })
+
+    onInternalChannel('app-remove-directory-by-id', (windowId: number, pathname: string) => {
+      const editor = this._windowManager.get(windowId) as EditorWindow | undefined
+      editor?.removeFolder(pathname)
+    })
+
     onInternalChannel(
       'app-open-directory-by-id',
       (windowId: number, pathname: string, openInSameWindow: boolean) => {

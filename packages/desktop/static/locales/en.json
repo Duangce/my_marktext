@@ -16,6 +16,7 @@
       "newWindow": "New Window",
       "openFile": "Open File...",
       "openFolder": "Open Folder...",
+      "addFolder": "Add Folder to Side Bar...",
       "openRecent": "Open Recent",
       "clearRecentlyUsed": "Clear Recently Used",
       "save": "Save",
@@ -210,7 +211,9 @@
       "rename": "Rename",
       "moveToTrash": "Move To Trash",
       "copyPath": "Copy Path",
-      "showInFolder": "Show In Folder"
+      "showInFolder": "Show In Folder",
+      "addFolder": "Add Folder to Side Bar...",
+      "removeFolder": "Remove Folder from Side Bar"
     },
     "tabs": {
       "close": "Close",
@@ -252,7 +255,10 @@
       "closeAll": "Close All",
       "emptyProject": "Empty project",
       "createFile": "Create File",
-      "openFolder": "Open Folder"
+      "openFolder": "Open Folder",
+      "addFolder": "Add Folder to Side Bar",
+      "folders": "{count} Folders",
+      "recentFolders": "Recent Folders"
     },
     "toc": {
       "expand": "Expand table of contents",
@@ -815,6 +821,7 @@
       "newTab": "New Tab",
       "openFile": "Open File",
       "openFolder": "Open Folder",
+      "addFolder": "Add Folder to Side Bar",
       "save": "Save",
       "saveAs": "Save As",
       "moveFile": "Move File",
