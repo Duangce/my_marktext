@@ -154,6 +154,38 @@ export const setCursorAtFirstLine = (cm: CodeMirrorInstance): void => {
   cm.setCursor(0, 0)
 }
 
+/**
+ * Move the lines covered by the primary selection one line up or down
+ * (Alt+↑/↓ in source-code mode), keeping the selection on the moved lines.
+ * No-op when the lines already touch the top/bottom of the document.
+ */
+export const moveSelectedLines = (cm: CodeMirrorInstance, direction: 'up' | 'down'): void => {
+  const anchor = cm.getCursor('anchor')
+  const head = cm.getCursor('head')
+  const from = Math.min(anchor.line, head.line)
+  let to = Math.max(anchor.line, head.line)
+  // A selection ending at column 0 of a line does not include that line.
+  const end = anchor.line > head.line ? anchor : head
+  if (to > from && end.ch === 0) to--
+
+  const delta = direction === 'up' ? -1 : 1
+  const swapLine = direction === 'up' ? from - 1 : to + 1
+  if (swapLine < cm.firstLine() || swapLine > cm.lastLine()) return
+
+  const block = cm.getRange({ line: from, ch: 0 }, { line: to, ch: cm.getLine(to).length })
+  const neighbour = cm.getLine(swapLine)
+  cm.operation(() => {
+    const start = Math.min(from, swapLine)
+    const stop = Math.max(to, swapLine)
+    const text = direction === 'up' ? `${block}\n${neighbour}` : `${neighbour}\n${block}`
+    cm.replaceRange(text, { line: start, ch: 0 }, { line: stop, ch: cm.getLine(stop).length }, '+moveLine')
+    cm.setSelection(
+      { line: anchor.line + delta, ch: anchor.ch },
+      { line: head.line + delta, ch: head.ch }
+    )
+  })
+}
+
 export const setMode = (doc: CodeMirrorDoc, text: string): Promise<MatchedMode> => {
   const m = getModeFromName(text)
 

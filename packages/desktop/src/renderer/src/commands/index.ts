@@ -206,6 +206,18 @@ const commands: CommandDescriptor[] = [
     }
   },
   {
+    id: 'edit.move-block-up',
+    execute: async() => {
+      focusEditorAndExecute(() => bus.emit('moveBlockUp', 'moveBlockUp'))
+    }
+  },
+  {
+    id: 'edit.move-block-down',
+    execute: async() => {
+      focusEditorAndExecute(() => bus.emit('moveBlockDown', 'moveBlockDown'))
+    }
+  },
+  {
     id: 'edit.find',
     execute: async() => {
       await delay(150)

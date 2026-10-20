@@ -29,6 +29,7 @@ const keybindings: Map<string, string> = new Map([
   // Edit menu
   ['edit.undo', 'Command+Z'],
   ['edit.redo', 'Command+Shift+Z'],
+  ['edit.redo-alternative', ''],
   ['edit.cut', 'Command+X'],
   ['edit.copy', 'Command+C'],
   ['edit.paste', 'Command+V'],
@@ -39,6 +40,8 @@ const keybindings: Map<string, string> = new Map([
   ['edit.duplicate', 'Command+Option+D'],
   ['edit.create-paragraph', 'Shift+Command+N'],
   ['edit.delete-paragraph', 'Shift+Command+D'],
+  ['edit.move-block-up', 'Command+Option+Up'],
+  ['edit.move-block-down', 'Command+Option+Down'],
   ['edit.find', 'Command+F'],
   ['edit.find-next', 'Cmd+G'],
   ['edit.find-previous', 'Cmd+Shift+G'],

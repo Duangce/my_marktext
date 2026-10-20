@@ -53,6 +53,7 @@ const COMMAND_KEY_MAP: Record<string, string> = {
   // Undo and redo
   'edit.undo': 'commands.edit.undo',
   'edit.redo': 'commands.edit.redo',
+  'edit.redo-alternative': 'commands.edit.redoAlternative',
 
   // Clipboard operations
   'edit.cut': 'commands.edit.cut',
@@ -69,6 +70,8 @@ const COMMAND_KEY_MAP: Record<string, string> = {
   // Paragraph operations
   'edit.create-paragraph': 'commands.edit.createParagraph',
   'edit.delete-paragraph': 'commands.edit.deleteParagraph',
+  'edit.move-block-up': 'commands.edit.moveBlockUp',
+  'edit.move-block-down': 'commands.edit.moveBlockDown',
 
   // Find and replace
   'edit.find': 'commands.edit.find',

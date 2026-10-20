@@ -149,3 +149,59 @@ describe('muya block editing api', () => {
         });
     });
 });
+
+describe('muya moveBlock()', () => {
+    it('moves the current top-level block down past its next sibling', async () => {
+        const muya = bootMuya('alpha\n\nbeta\n\ngamma\n');
+        placeCursorOn(muya, 'alpha');
+        muya.moveBlock('down');
+        await vi.waitFor(() => {
+            expect(muya.getMarkdown().trim()).toBe('beta\n\nalpha\n\ngamma');
+        });
+    });
+
+    it('moves the current top-level block up past its previous sibling', async () => {
+        const muya = bootMuya('# Title\n\nalpha\n\nbeta\n');
+        placeCursorOn(muya, 'beta');
+        muya.moveBlock('up');
+        await vi.waitFor(() => {
+            expect(muya.getMarkdown().trim()).toBe('# Title\n\nbeta\n\nalpha');
+        });
+    });
+
+    it('is a no-op at the edge of the document', async () => {
+        const muya = bootMuya('alpha\n\nbeta\n');
+        placeCursorOn(muya, 'alpha');
+        muya.moveBlock('up');
+        placeCursorOn(muya, 'beta');
+        muya.moveBlock('down');
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        expect(muya.getMarkdown().trim()).toBe('alpha\n\nbeta');
+    });
+
+    it('reorders list items instead of blocks inside an item', async () => {
+        const muya = bootMuya('- one\n- two\n- three\n');
+        placeCursorOn(muya, 'three');
+        muya.moveBlock('up');
+        await vi.waitFor(() => {
+            expect(muya.getMarkdown().trim()).toBe('- one\n- three\n- two');
+        });
+    });
+
+    it('keeps nested list items within their own list', async () => {
+        const muya = bootMuya('- parent\n  - child a\n  - child b\n- sibling\n');
+        placeCursorOn(muya, 'child a');
+        muya.moveBlock('down');
+        await vi.waitFor(() => {
+            expect(muya.getMarkdown().trim()).toBe('- parent\n  - child b\n  - child a\n- sibling');
+        });
+    });
+
+    it('never moves a block above the front matter', async () => {
+        const muya = bootMuya('---\ntitle: x\n---\n\nbody\n');
+        placeCursorOn(muya, 'body');
+        muya.moveBlock('up');
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        expect(muya.getState()[0].name).toBe('frontmatter');
+    });
+});

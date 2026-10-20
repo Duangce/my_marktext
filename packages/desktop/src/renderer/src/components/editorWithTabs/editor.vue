@@ -1494,7 +1494,7 @@ const handleEditParagraph = (type: unknown) => {
   }
 }
 
-// handle `duplicate`, `delete`, `create paragraph below`
+// handle `duplicate`, `delete`, `create paragraph below`, `move block up/down`
 const handleParagraph = (type: unknown) => {
   if (sourceCode.value) {
     return
@@ -1509,6 +1509,12 @@ const handleParagraph = (type: unknown) => {
       }
       case 'deleteParagraph': {
         return editor.value.deleteParagraph()
+      }
+      case 'moveBlockUp': {
+        return editor.value.moveBlock('up')
+      }
+      case 'moveBlockDown': {
+        return editor.value.moveBlock('down')
       }
       default:
         console.error(`unknown paragraph edit type: ${type}`)
@@ -2007,6 +2013,8 @@ onMounted(() => {
   bus.on('duplicate', handleParagraph)
   bus.on('createParagraph', handleParagraph)
   bus.on('deleteParagraph', handleParagraph)
+  bus.on('moveBlockUp', handleParagraph)
+  bus.on('moveBlockDown', handleParagraph)
   bus.on('insertParagraph', handleInsertParagraph)
   bus.on('scroll-to-header', scrollToHeader)
   bus.on('scroll-to-anchor-element', scrollToAnchorElement)
@@ -2182,6 +2190,8 @@ onBeforeUnmount(() => {
   bus.off('duplicate', handleParagraph)
   bus.off('createParagraph', handleParagraph)
   bus.off('deleteParagraph', handleParagraph)
+  bus.off('moveBlockUp', handleParagraph)
+  bus.off('moveBlockDown', handleParagraph)
   bus.off('insertParagraph', handleInsertParagraph)
   bus.off('scroll-to-header', scrollToHeader)
   bus.off('scroll-to-anchor-element', scrollToAnchorElement)

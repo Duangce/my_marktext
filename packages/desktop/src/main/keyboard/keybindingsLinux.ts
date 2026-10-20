@@ -33,6 +33,7 @@ const keybindings: Map<string, string> = new Map([
   // Edit menu
   ['edit.undo', 'Ctrl+Z'],
   ['edit.redo', 'Ctrl+Shift+Z'],
+  ['edit.redo-alternative', ''], // Ctrl+Y is inline code on Linux
   ['edit.cut', 'Ctrl+X'],
   ['edit.copy', 'Ctrl+C'],
   ['edit.paste', 'Ctrl+V'],
@@ -43,6 +44,8 @@ const keybindings: Map<string, string> = new Map([
   ['edit.duplicate', 'Ctrl+Shift+E'],
   ['edit.create-paragraph', 'Ctrl+Shift+N'],
   ['edit.delete-paragraph', 'Ctrl+Shift+D'],
+  ['edit.move-block-up', 'Alt+Up'],
+  ['edit.move-block-down', 'Alt+Down'],
   ['edit.find', 'Ctrl+F'],
   ['edit.find-next', 'F3'],
   ['edit.find-previous', 'Shift+F3'],

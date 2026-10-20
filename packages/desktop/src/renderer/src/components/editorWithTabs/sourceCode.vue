@@ -22,7 +22,7 @@ import {
 } from '@/util/sourceModeToc'
 import { storeToRefs } from 'pinia'
 import type CodeMirror from 'codemirror'
-import codeMirror, { setCursorAtFirstLine, setTextDirection } from '../../codeMirror'
+import codeMirror, { moveSelectedLines, setCursorAtFirstLine, setTextDirection } from '../../codeMirror'
 import { wordCount as getWordCount } from '@muyajs/core'
 import { adjustCursor } from '../../util'
 import bus from '../../bus'
@@ -257,6 +257,13 @@ const handleRedo = () => {
   }
 }
 
+const handleMoveLines = (type: unknown) => {
+  if (!sourceCode.value || !editor.value) {
+    return
+  }
+  moveSelectedLines(editor.value, type === 'moveBlockUp' ? 'up' : 'down')
+}
+
 interface ImageActionPayload {
   id: string
   result: string
@@ -440,6 +447,8 @@ onMounted(() => {
   bus.on('selectAll', handleSelectAll)
   bus.on('undo', handleUndo)
   bus.on('redo', handleRedo)
+  bus.on('moveBlockUp', handleMoveLines)
+  bus.on('moveBlockDown', handleMoveLines)
   bus.on('image-action', handleImageAction)
   bus.on('scroll-to-header', handleScrollToHeader)
 
@@ -491,6 +500,8 @@ onBeforeUnmount(() => {
   bus.off('selectAll', handleSelectAll)
   bus.off('undo', handleUndo)
   bus.off('redo', handleRedo)
+  bus.off('moveBlockUp', handleMoveLines)
+  bus.off('moveBlockDown', handleMoveLines)
   bus.off('image-action', handleImageAction)
   editorStore.SET_SELECTION_WORD_COUNT(null)
   lastSelectionKey = ''

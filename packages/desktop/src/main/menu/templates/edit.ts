@@ -107,6 +107,20 @@ export default function(keybindings: Keybindings): MenuItemConstructorOptions {
         }
       },
       {
+        label: t('menu.edit.moveBlockUp'),
+        accelerator: keybindings.getAccelerator(COMMANDS.EDIT_MOVE_BLOCK_UP) ?? undefined,
+        click(_menuItem, browserWindow) {
+          actions.editorMoveBlockUp(browserWindow as BrowserWindow | undefined)
+        }
+      },
+      {
+        label: t('menu.edit.moveBlockDown'),
+        accelerator: keybindings.getAccelerator(COMMANDS.EDIT_MOVE_BLOCK_DOWN) ?? undefined,
+        click(_menuItem, browserWindow) {
+          actions.editorMoveBlockDown(browserWindow as BrowserWindow | undefined)
+        }
+      },
+      {
         type: 'separator'
       },
       {

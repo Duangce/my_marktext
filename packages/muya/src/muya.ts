@@ -132,6 +132,9 @@ const WHOLE_BLOCK_NAMES = new Set([
 
 const HEADING_LEVEL_BLOCK_NAMES = new Set(['paragraph', 'atx-heading', 'setext-heading']);
 
+// `moveBlock` promotes a caret in an item's leading block to the item itself.
+const MOVABLE_LIST_ITEM_NAMES = new Set(['list-item', 'task-list-item']);
+
 // Options consumed by the markdown→state lexer (markdownToState / lexBlock).
 // Changing any of these re-classifies block structure (e.g. ```math ⇄ code
 // block under tex_math_gfm, front matter, footnote definitions), which
@@ -1039,6 +1042,44 @@ export class Muya {
         const dupBlock = ScrollPage.loadBlock(state.name).create(this, state);
         block.parent!.insertAfter(dupBlock, block);
         dupBlock.lastContentInDescendant()?.setCursor(0, 0, true);
+    }
+
+    /**
+     * Swap the block at the current cursor with its previous (`up`) or next
+     * (`down`) sibling, keeping the caret where it was inside the moved block.
+     * A caret in a list item's leading block moves the whole list item, so
+     * Alt+↑/↓ reorders items rather than shuffling blocks inside one item.
+     * No-op at the edge of the container, for a selection spanning several
+     * blocks, and for front matter (which must stay first).
+     */
+    moveBlock(direction: 'up' | 'down') {
+        if (!this.canMutate)
+            return;
+        const { selection } = this.editor;
+        const content = this.editor.activeContentBlock ?? selection.anchorBlock;
+        if (!content?.outMostBlock || !this._selectionInSameLeaf())
+            return;
+
+        let block = content.getAnchor() ?? null;
+        while (
+            block?.parent
+            && MOVABLE_LIST_ITEM_NAMES.has(block.parent.blockName)
+            && block.parent.firstChild === block
+        ) {
+            block = block.parent;
+        }
+        if (!block?.parent || block.blockName === 'frontmatter')
+            return;
+
+        const target = (direction === 'up' ? block.prev : block.next) as Nullable<Parent>;
+        if (!target || target.blockName === 'frontmatter')
+            return;
+
+        const cursor = content.getCursor();
+        block.insertInto(block.parent, direction === 'up' ? target : target.next as Nullable<Parent>);
+
+        if (cursor)
+            content.setCursor(cursor.start.offset, cursor.end.offset, true);
     }
 
     /**

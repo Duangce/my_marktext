@@ -105,6 +105,14 @@ export const editorDeleteParagraph = (win: Win): void => {
   edit(win, 'deleteParagraph')
 }
 
+export const editorMoveBlockUp = (win: Win): void => {
+  edit(win, 'moveBlockUp')
+}
+
+export const editorMoveBlockDown = (win: Win): void => {
+  edit(win, 'moveBlockDown')
+}
+
 export const editorFind = (win: Win): void => {
   edit(win, 'find')
 }
@@ -173,9 +181,12 @@ export const loadEditCommands = (commandManager: CommandManager): void => {
   commandManager.add(COMMANDS.EDIT_FIND_IN_FOLDER, findInFolder)
   commandManager.add(COMMANDS.EDIT_FIND_NEXT, editorFindNext)
   commandManager.add(COMMANDS.EDIT_FIND_PREVIOUS, editorFindPrevious)
+  commandManager.add(COMMANDS.EDIT_MOVE_BLOCK_DOWN, editorMoveBlockDown)
+  commandManager.add(COMMANDS.EDIT_MOVE_BLOCK_UP, editorMoveBlockUp)
   commandManager.add(COMMANDS.EDIT_PASTE, nativePaste)
   commandManager.add(COMMANDS.EDIT_PASTE_AS_PLAINTEXT, editorPasteAsPlainText)
   commandManager.add(COMMANDS.EDIT_REDO, editorRedo)
+  commandManager.add(COMMANDS.EDIT_REDO_ALTERNATIVE, editorRedo)
   commandManager.add(COMMANDS.EDIT_REPLACE, editorReplace)
   commandManager.add(COMMANDS.EDIT_SCREENSHOT, screenshot)
   commandManager.add(COMMANDS.EDIT_SELECT_ALL, editorSelectAll)
