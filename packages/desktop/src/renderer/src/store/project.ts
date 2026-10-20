@@ -335,7 +335,11 @@ export const useProjectStore = defineStore('project', () => {
     if (!pathname) return false
     const tree = _findTreeForPath(pathname)
     if (!tree) return false
-    return expandAncestors(tree, pathname) !== null
+    const found = expandAncestors(tree, pathname) !== null
+    // With several folders each root row collapses on its own.
+    const root = tree as TreeFolderNode
+    if (found && root.isCollapsed) root.isCollapsed = false
+    return found
   }
 
   function REVEAL_FILE_IN_SIDE_BAR(pathname?: string | null): void {
